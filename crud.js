@@ -11,16 +11,6 @@ const HTTP = keyMirror({
   DELETE: null,
 })
 
-const isUnoccupiedLabelName = name => new Promise(
-  (res, rej) => {
-    Label.findOne({ name }, {}, (err, label) => {
-      if (label)
-        rej(label)
-      else
-        res()
-    })
-  })
-
 export default [
   {
     method: HTTP.GET,
@@ -53,7 +43,7 @@ export default [
     handler: (req, res) => {
       const { name = "" } = req.body
       const newLabel = new Label({ name })
-      isUnoccupiedLabelName(name)
+      Label.isUnoccupiedName(name)
         .then(() => {
           newLabel.save((err, label) => {
             if (err)
@@ -87,10 +77,9 @@ export default [
           })
         }
 
-        isUnoccupiedLabelName(name)
+        Label.isUnoccupiedName(name)
           .then(doUpdate)
           .catch(label => {
-            console.log(String(label._id), req.params.labelId)
             if (String(label._id) === req.params.labelId)
               doUpdate()
             else
