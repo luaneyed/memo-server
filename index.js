@@ -8,14 +8,12 @@ const app = Express();
 //var Play = require('./models/play');
 //var Movie = require('./models/movie');
 
-/*
 var db = Mongoose.connection;
 db.on('error', console.error);
 db.once('open', function(){
   console.log("Connected to mongod server");
 });
-Mongoose.connect('mongodb://localhost/cinema');
-*/
+Mongoose.connect('mongodb://localhost/memo');
 
 app.use(Cors());
 app.use(BodyParser.urlencoded({ extended : true}));
