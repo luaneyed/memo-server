@@ -1,0 +1,34 @@
+{
+  "name": "memo-server",
+  "version": "1.0.0",
+  "description": "API Server of Memo App",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sangguk2/memo-server.git"
+  },
+  "author": "Luan Sangguk Lee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sangguk2/memo-server/issues"
+  },
+  "homepage": "https://github.com/sangguk2/memo-server#readme",
+  "dependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.24.1",
+    "babel-runtime": "^6.23.0",
+    "body-parser": "^1.17.1",
+    "cors": "^2.8.3",
+    "express": "^4.15.2",
+    "mongoose": "^4.9.8"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1"
+  }
+}
