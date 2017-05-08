@@ -1,34 +1,40 @@
+/* External Dependencies */
 import Express from 'express'
 import Cors from 'cors'
 import BodyParser from 'body-parser'
 import Mongoose from 'mongoose'
 
-const app = Express();
+/* Internal Dependencies */
+import CRUDs from './crud'
 
-//var Play = require('./models/play');
-//var Movie = require('./models/movie');
-
-var db = Mongoose.connection;
-db.on('error', console.error);
+const db = Mongoose.connection
+db.on('error', console.error)
 db.once('open', function(){
-  console.log("Connected to mongod server");
-});
-Mongoose.connect('mongodb://localhost/memo');
+  console.log("Connected to mongod server")
+})
+Mongoose.connect('mongodb://localhost/memo')
 
-app.use(Cors());
-app.use(BodyParser.urlencoded({ extended : true}));
-app.use(BodyParser.json());
+const app = Express()
+app.use(Cors())
+app.use(BodyParser.urlencoded({ extended : true}))
+app.use(BodyParser.json())
 
-const port = 8080;
+let MainPage = "<div style='white-space: pre; font-family: sans-serif'>"
+MainPage += '<h1>API Specification</h1>'
 
-//var router = require('./routes')(app, Play, Movie);
+CRUDs.forEach(({ method, path, description, handler }) => {
+  app[method.toLowerCase()](path, handler)
+
+  MainPage += `\n\n<h3>${description}</h3>`
+  MainPage += `<strong>${method}</strong>   ${path}`
+})
 
 app.get('/', function(req,res){
-  let str = "<div style='white-space: pre'>";
-  str += 'This is Memo API Server Default Page';
-  res.send(str);
-});
+  res.send(MainPage)
+})
 
-const server = app.listen(port, function(){
+const port = 8080
+
+const server = app.listen(port, () => {
   console.log("Express server has started on port " + port)
-});
+})
