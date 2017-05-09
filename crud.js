@@ -89,7 +89,7 @@ export default [
         Label.isUnoccupiedName(name)
           .then(doUpdate)
           .catch(label => {
-            if (String(label._id) === req.params.labelId)
+            if (label.isId(req.params.labelId))
               doUpdate()
             else
               res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)

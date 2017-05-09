@@ -16,4 +16,8 @@ labelSchema.statics.isUnoccupiedName = function(name) {
     })
 }
 
+labelSchema.methods.isId = function(id) {
+  return String(this._id) === id
+}
+
 export default Mongoose.model('labels', labelSchema)
