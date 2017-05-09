@@ -24,6 +24,7 @@
     "cors": "^2.8.3",
     "express": "^4.15.2",
     "keymirror": "^0.1.1",
+    "moment": "^2.18.1",
     "mongoose": "^4.9.8"
   },
   "devDependencies": {

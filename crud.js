@@ -1,5 +1,6 @@
 /* External Dependencies*/
 import keyMirror from 'keymirror'
+import moment from 'moment'
 
 /* Internal Dependencies */
 import { Label, Memo } from './models'
@@ -13,6 +14,7 @@ const HTTP = keyMirror({
 
 const ERROR = {
   DATABASE_FAILURE: '데이터베이스 오류입니다.',
+  NONEXISTENT_MEMO: '메모가 존재하지 않습니다.',
   NONEXISTENT_LABEL: '라벨이 존재하지 않습니다.',
   OCCUPIED_LABEL_NAME: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.',
 }
@@ -20,7 +22,12 @@ Object.keys(ERROR).forEach(error => {
   ERROR[error] = { errorMessage: ERROR[error] }
 })
 
+const getNow = () => +moment().format('x')
+
 export default [
+
+  //  label
+
   {
     method: HTTP.GET,
     path: '/labels',
@@ -116,6 +123,86 @@ export default [
     description: 'Remove all labels (FOR DEBUG)',
     handler: (req, res) => {
       Label.remove({}, (err, output) => {
+        if (err)
+          return res.status(500).json(ERROR.DATABASE_FAILURE)
+        res.status(204).end()
+      })
+    },
+  },
+
+  //  memo
+
+  {
+    method: HTTP.GET,
+    path: '/memos',
+    description: 'List all memos',
+    handler: (req, res) => {
+      Memo.find({}, {}, (err, memos) => {
+        if (err)
+          return res.status(500).send(ERROR.DATABASE_FAILURE)
+        res.json(memos)
+      })
+    },
+  },
+  {
+    method: HTTP.POST,
+    path: '/memo',
+    description: 'Create a Memo',
+    handler: (req, res) => {
+      const { title = "", content = "", labelIds = [] } = req.body
+      const newMemo = new Memo({ title, content, labelIds, updatedAt: getNow() })
+
+      newMemo.save((err, memo) => {
+        if (err)
+          return console.error(err)
+        res.json(memo)
+      })
+    },
+  },
+  {
+    method: HTTP.PUT,
+    path: '/memo/:memoId',
+    description: 'Update a memo',
+    handler: (req, res) => {
+      Memo.findById(req.params.memoId, (err, memo) => {
+        if(err) return res.status(500).json(ERROR.DATABASE_FAILURE)
+        if(!memo) return res.status(404).json(ERROR.NONEXISTENT_MEMO)
+
+        const { title, content, labelIds } = req.body
+
+        if (title)
+          memo.title = title
+        if (content)
+          memo.content = content
+        if (labelIds)
+          memo.labelIds = labelIds
+        memo.updated = getNow()
+
+        memo.save(function(err){
+          if(err) res.status(500).json(ERROR.DATABASE_FAILURE)
+          res.json(memo)
+        })
+      })
+    },
+  },
+  {
+    method: HTTP.DELETE,
+    path: '/memo/:memoId',
+    description: 'Delete a memo',
+    handler: (req, res) => {
+      Memo.remove({ _id: req.params.memoId }, (err, output) => {
+        if (err)
+          return res.status(500).json(ERROR.DATABASE_FAILURE)
+        res.status(204).end()
+      })
+    },
+  },
+  {
+    method: HTTP.DELETE,
+    path: '/memos',
+    description: 'Remove all memos (FOR DEBUG)',
+    handler: (req, res) => {
+      Memo.remove({}, (err, output) => {
         if (err)
           return res.status(500).json(ERROR.DATABASE_FAILURE)
         res.status(204).end()
