@@ -11,6 +11,15 @@ const HTTP = keyMirror({
   DELETE: null,
 })
 
+const ERROR = {
+  DATABASE_FAILURE: '데이터베이스 오류입니다.',
+  NONEXISTENT_LABEL: '라벨이 존재하지 않습니다.',
+  OCCUPIED_LABEL_NAME: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.',
+}
+Object.keys(ERROR).forEach(error => {
+  ERROR[error] = { errorMessage: ERROR[error] }
+})
+
 export default [
   {
     method: HTTP.GET,
@@ -19,7 +28,7 @@ export default [
     handler: (req, res) => {
       Label.find({}, {}, (err, labels) => {
         if (err)
-          return res.status(500).send({ error: 'database failure' })
+          return res.status(500).send(ERROR.DATABASE_FAILURE)
         res.json(labels)
       })
     },
@@ -31,7 +40,7 @@ export default [
     handler: (req, res) => {
       Label.findById(req.params.labelId, {}, (err, label) => {
         if (err)
-          return res.status(500).send({ error: 'database failure' })
+          return res.status(500).send(ERROR.DATABASE_FAILURE)
         res.json(label)
       })
     },
@@ -52,7 +61,7 @@ export default [
           })
         })
         .catch(() => {
-          res.status(500).send({ error: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.' })
+          res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
         })
     },
   },
@@ -62,8 +71,8 @@ export default [
     description: 'Update a label',
     handler: (req, res) => {
       Label.findById(req.params.labelId, (err, label) => {
-        if(err) return res.status(500).json({ error: 'database failure' })
-        if(!label) return res.status(404).json({ error: 'label not found' })
+        if(err) return res.status(500).json(ERROR.DATABASE_FAILURE)
+        if(!label) return res.status(404).json(ERROR.NONEXISTENT_LABEL)
 
         const { name = "" } = req.body
 
@@ -72,7 +81,7 @@ export default [
             label.name = name
 
           label.save(function(err){
-            if(err) res.status(500).json({error: 'failed to update'})
+            if(err) res.status(500).json(ERROR.DATABASE_FAILURE)
             res.json(label)
           })
         }
@@ -83,7 +92,7 @@ export default [
             if (String(label._id) === req.params.labelId)
               doUpdate()
             else
-              res.status(500).send({ error: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.' })
+              res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
           })
 
       })
@@ -96,7 +105,7 @@ export default [
     handler: (req, res) => {
       Label.remove({ _id: req.params.labelId }, (err, output) => {
         if (err)
-          return res.status(500).json({ error: 'database failure' })
+          return res.status(500).json(ERROR.DATABASE_FAILURE)
         res.status(204).end()
       })
     },
@@ -108,7 +117,7 @@ export default [
     handler: (req, res) => {
       Label.remove({}, (err, output) => {
         if (err)
-          return res.status(500).json({ error: 'database failure' })
+          return res.status(500).json(ERROR.DATABASE_FAILURE)
         res.status(204).end()
       })
     },
