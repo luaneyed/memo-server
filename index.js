@@ -9,15 +9,15 @@ import CRUDs from './crud'
 
 const db = Mongoose.connection
 db.on('error', console.error)
-db.once('open', function(){
-  console.log("Connected to mongod server")
+db.once('open', () => {
+  console.log('Connected to mongod server')
 })
 Mongoose.Promise = Promise
 Mongoose.connect('mongodb://localhost/memo')
 
 const app = Express()
 app.use(Cors())
-app.use(BodyParser.urlencoded({ extended : true}))
+app.use(BodyParser.urlencoded({ extended: true }))
 app.use(BodyParser.json())
 
 let MainPage = "<div style='white-space: pre; font-family: sans-serif'>"
@@ -30,12 +30,12 @@ CRUDs.forEach(({ method, path, description, handler }) => {
   MainPage += `<strong>${method}</strong>   ${path}`
 })
 
-app.get('/', function(req,res){
+app.get('/', (req, res) => {
   res.send(MainPage)
 })
 
 const port = 8080
 
-const server = app.listen(port, () => {
-  console.log("Express server has started on port " + port)
+app.listen(port, () => {
+  console.log(`Express server has started on port ${port}`)
 })

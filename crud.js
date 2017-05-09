@@ -34,9 +34,11 @@ export default [
     description: 'List all labels',
     handler: (req, res) => {
       Label.find({}, {}, (err, labels) => {
-        if (err)
-          return res.status(500).send(ERROR.DATABASE_FAILURE)
-        res.json(labels)
+        if (err) {
+          res.status(500).send(ERROR.DATABASE_FAILURE)
+        } else {
+          res.json(labels)
+        }
       })
     },
   },
@@ -46,9 +48,11 @@ export default [
     description: 'Get a label (FOR DEBUG)',
     handler: (req, res) => {
       Label.findById(req.params.labelId, {}, (err, label) => {
-        if (err)
-          return res.status(500).send(ERROR.DATABASE_FAILURE)
-        res.json(label)
+        if (err) {
+          res.status(500).send(ERROR.DATABASE_FAILURE)
+        } else {
+          res.json(label)
+        }
       })
     },
   },
@@ -57,14 +61,16 @@ export default [
     path: '/label',
     description: 'Create a label',
     handler: (req, res) => {
-      const { name = "" } = req.body
+      const { name = '' } = req.body
       const newLabel = new Label({ name })
       Label.isUnoccupiedName(name)
         .then(() => {
           newLabel.save((err, label) => {
-            if (err)
-              return console.error(err)
-            res.json(label)
+            if (err) {
+              res.status(500).json(ERROR.DATABASE_FAILURE)
+            } else {
+              res.json(label)
+            }
           })
         })
         .catch(() => {
@@ -78,30 +84,37 @@ export default [
     description: 'Update a label',
     handler: (req, res) => {
       Label.findById(req.params.labelId, (err, label) => {
-        if(err) return res.status(500).json(ERROR.DATABASE_FAILURE)
-        if(!label) return res.status(404).json(ERROR.NONEXISTENT_LABEL)
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else if (!label) {
+          res.status(404).json(ERROR.NONEXISTENT_LABEL)
+        } else {
+          const { name = '' } = req.body
 
-        const { name = "" } = req.body
+          const doUpdate = () => {
+            if (name) {
+              label.name = name
+            }
 
-        const doUpdate = () => {
-          if (name)
-            label.name = name
+            label.save(err2 => {
+              if (err2) {
+                res.status(500).json(ERROR.DATABASE_FAILURE)
+              } else {
+                res.json(label)
+              }
+            })
+          }
 
-          label.save(function(err){
-            if(err) res.status(500).json(ERROR.DATABASE_FAILURE)
-            res.json(label)
-          })
+          Label.isUnoccupiedName(name)
+            .then(doUpdate)
+            .catch(occupyingLabel => {
+              if (occupyingLabel.isId(req.params.labelId)) {
+                doUpdate()
+              } else {
+                res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
+              }
+            })
         }
-
-        Label.isUnoccupiedName(name)
-          .then(doUpdate)
-          .catch(label => {
-            if (label.isId(req.params.labelId))
-              doUpdate()
-            else
-              res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
-          })
-
       })
     },
   },
@@ -110,10 +123,12 @@ export default [
     path: '/label/:labelId',
     description: 'Remove a label',
     handler: (req, res) => {
-      Label.remove({ _id: req.params.labelId }, (err, output) => {
-        if (err)
-          return res.status(500).json(ERROR.DATABASE_FAILURE)
-        res.status(204).end()
+      Label.remove({ _id: req.params.labelId }, err => {
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else {
+          res.status(204).end()
+        }
       })
     },
   },
@@ -122,10 +137,12 @@ export default [
     path: '/labels',
     description: 'Remove all labels (FOR DEBUG)',
     handler: (req, res) => {
-      Label.remove({}, (err, output) => {
-        if (err)
-          return res.status(500).json(ERROR.DATABASE_FAILURE)
-        res.status(204).end()
+      Label.remove({}, err => {
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else {
+          res.status(204).end()
+        }
       })
     },
   },
@@ -138,9 +155,11 @@ export default [
     description: 'List all memos',
     handler: (req, res) => {
       Memo.find({}, {}, (err, memos) => {
-        if (err)
-          return res.status(500).send(ERROR.DATABASE_FAILURE)
-        res.json(memos)
+        if (err) {
+          res.status(500).send(ERROR.DATABASE_FAILURE)
+        } else {
+          res.json(memos)
+        }
       })
     },
   },
@@ -149,13 +168,15 @@ export default [
     path: '/memo',
     description: 'Create a Memo',
     handler: (req, res) => {
-      const { title = "", content = "", labelIds = [] } = req.body
+      const { title = '', content = '', labelIds = [] } = req.body
       const newMemo = new Memo({ title, content, labelIds, updatedAt: getNow() })
 
       newMemo.save((err, memo) => {
-        if (err)
-          return console.error(err)
-        res.json(memo)
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else {
+          res.json(memo)
+        }
       })
     },
   },
@@ -165,23 +186,32 @@ export default [
     description: 'Update a memo',
     handler: (req, res) => {
       Memo.findById(req.params.memoId, (err, memo) => {
-        if(err) return res.status(500).json(ERROR.DATABASE_FAILURE)
-        if(!memo) return res.status(404).json(ERROR.NONEXISTENT_MEMO)
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else if (!memo) {
+          res.status(404).json(ERROR.NONEXISTENT_MEMO)
+        } else {
+          const { title, content, labelIds } = req.body
 
-        const { title, content, labelIds } = req.body
+          if (title) {
+            memo.title = title
+          }
+          if (content) {
+            memo.content = content
+          }
+          if (labelIds) {
+            memo.labelIds = labelIds
+          }
+          memo.updated = getNow()
 
-        if (title)
-          memo.title = title
-        if (content)
-          memo.content = content
-        if (labelIds)
-          memo.labelIds = labelIds
-        memo.updated = getNow()
-
-        memo.save(function(err){
-          if(err) res.status(500).json(ERROR.DATABASE_FAILURE)
-          res.json(memo)
-        })
+          memo.save(err2 => {
+            if (err2) {
+              res.status(500).json(ERROR.DATABASE_FAILURE)
+            } else {
+              res.json(memo)
+            }
+          })
+        }
       })
     },
   },
@@ -190,10 +220,12 @@ export default [
     path: '/memo/:memoId',
     description: 'Delete a memo',
     handler: (req, res) => {
-      Memo.remove({ _id: req.params.memoId }, (err, output) => {
-        if (err)
-          return res.status(500).json(ERROR.DATABASE_FAILURE)
-        res.status(204).end()
+      Memo.remove({ _id: req.params.memoId }, err => {
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else {
+          res.status(204).end()
+        }
       })
     },
   },
@@ -202,10 +234,12 @@ export default [
     path: '/memos',
     description: 'Remove all memos (FOR DEBUG)',
     handler: (req, res) => {
-      Memo.remove({}, (err, output) => {
-        if (err)
-          return res.status(500).json(ERROR.DATABASE_FAILURE)
-        res.status(204).end()
+      Memo.remove({}, err => {
+        if (err) {
+          res.status(500).json(ERROR.DATABASE_FAILURE)
+        } else {
+          res.status(204).end()
+        }
       })
     },
   },

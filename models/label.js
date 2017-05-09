@@ -4,19 +4,20 @@ const labelSchema = new Mongoose.Schema({
   name: String,
 })
 
-labelSchema.statics.isUnoccupiedName = function(name) {
+labelSchema.statics.isUnoccupiedName = function (name) {
   return new Promise(
     (res, rej) => {
       this.findOne({ name }, {}, (err, label) => {
-        if (label)
+        if (label) {
           rej(label)
-        else
+        } else {
           res()
+        }
       })
     })
 }
 
-labelSchema.methods.isId = function(id) {
+labelSchema.methods.isId = function (id) {
   return String(this._id) === id
 }
 
