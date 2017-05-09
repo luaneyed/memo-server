@@ -12,6 +12,7 @@ db.on('error', console.error)
 db.once('open', function(){
   console.log("Connected to mongod server")
 })
+Mongoose.Promise = Promise
 Mongoose.connect('mongodb://localhost/memo')
 
 const app = Express()
