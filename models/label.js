@@ -2,6 +2,7 @@ import Mongoose from 'mongoose'
 
 const labelSchema = new Mongoose.Schema({
   name: String,
+  createdAt: Number,
 })
 
 labelSchema.statics.isUnoccupiedName = function (name) {

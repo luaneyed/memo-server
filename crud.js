@@ -62,9 +62,10 @@ export default [
     description: 'Create a label',
     handler: (req, res) => {
       const { name = '' } = req.body
-      const newLabel = new Label({ name })
       Label.isUnoccupiedName(name)
         .then(() => {
+          const newLabel = new Label({ name, createdAt: getNow() })
+
           newLabel.save((err, label) => {
             if (err) {
               res.status(500).json(ERROR.DATABASE_FAILURE)

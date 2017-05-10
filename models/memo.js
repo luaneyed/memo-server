@@ -2,9 +2,9 @@ import Mongoose from 'mongoose'
 
 const memoSchema = new Mongoose.Schema({
   title: String,
-  updatedAt: Number,
   content: String,
   labelIds: [String],
+  updatedAt: Number,
 })
 
 export default Mongoose.model('memos', memoSchema)
