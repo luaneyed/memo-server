@@ -202,7 +202,7 @@ export default [
           if (labelIds) {
             memo.labelIds = labelIds
           }
-          memo.updated = getNow()
+          memo.updatedAt = getNow()
 
           memo.save(err2 => {
             if (err2) {
