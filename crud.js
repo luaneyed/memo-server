@@ -1,4 +1,5 @@
 /* External Dependencies*/
+import _ from 'lodash'
 import keyMirror from 'keymirror'
 import moment from 'moment'
 
@@ -42,20 +43,20 @@ export default [
       })
     },
   },
-  {
-    method: HTTP.GET,
-    path: '/label/:labelId',
-    description: 'Get a label (FOR DEBUG)',
-    handler: (req, res) => {
-      Label.findById(req.params.labelId, {}, (err, label) => {
-        if (err) {
-          res.status(500).send(ERROR.DATABASE_FAILURE)
-        } else {
-          res.json(label)
-        }
-      })
-    },
-  },
+  // {
+  //   method: HTTP.GET,
+  //   path: '/label/:labelId',
+  //   description: 'Get a label (FOR DEBUG)',
+  //   handler: (req, res) => {
+  //     Label.findById(req.params.labelId, {}, (err, label) => {
+  //       if (err) {
+  //         res.status(500).send(ERROR.DATABASE_FAILURE)
+  //       } else {
+  //         res.json(label)
+  //       }
+  //     })
+  //   },
+  // },
   {
     method: HTTP.POST,
     path: '/label',
@@ -93,7 +94,7 @@ export default [
           const { name = '' } = req.body
 
           const doUpdate = () => {
-            if (name) {
+            if (!_.isUndefined(name)) {
               label.name = name
             }
 
@@ -133,20 +134,20 @@ export default [
       })
     },
   },
-  {
-    method: HTTP.DELETE,
-    path: '/labels',
-    description: 'Remove all labels (FOR DEBUG)',
-    handler: (req, res) => {
-      Label.remove({}, err => {
-        if (err) {
-          res.status(500).json(ERROR.DATABASE_FAILURE)
-        } else {
-          res.status(204).end()
-        }
-      })
-    },
-  },
+  // {
+  //   method: HTTP.DELETE,
+  //   path: '/labels',
+  //   description: 'Remove all labels (FOR DEBUG)',
+  //   handler: (req, res) => {
+  //     Label.remove({}, err => {
+  //       if (err) {
+  //         res.status(500).json(ERROR.DATABASE_FAILURE)
+  //       } else {
+  //         res.status(204).end()
+  //       }
+  //     })
+  //   },
+  // },
 
   //  memo
 
@@ -194,13 +195,13 @@ export default [
         } else {
           const { title, content, labelIds } = req.body
 
-          if (title) {
+          if (!_.isUndefined(title)) {
             memo.title = title
           }
-          if (content) {
+          if (!_.isUndefined(content)) {
             memo.content = content
           }
-          if (labelIds) {
+          if (!_.isUndefined(labelIds)) {
             memo.labelIds = labelIds
           }
           memo.updatedAt = getNow()
