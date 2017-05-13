@@ -26,6 +26,33 @@ Object.keys(ERROR).forEach(error => {
 
 const getNow = () => +moment().format('x')
 
+const saveMany = documents => new Promise((res, rej) => {
+  let left = documents.length
+  if (left === 0) {
+    res([])
+  }
+  const result = []
+
+  const saveLeft = () => {
+    documents[left - 1].save((err, saved) => {
+      if (err) {
+        rej(err)
+      } else {
+        result.push(saved[0])
+
+        left -= 1
+        if (left) {
+          saveLeft()
+        } else {
+          res(result)
+        }
+      }
+    })
+  }
+
+  saveLeft()
+})
+
 export default [
 
   //  label
@@ -134,11 +161,25 @@ export default [
     path: '/label/:labelId',
     description: 'Remove a label',
     handler: (req, res) => {
-      Label.remove({ _id: req.params.labelId }, err => {
+      const { labelId } = req.params
+      Label.remove({ _id: labelId }, err => {
         if (err) {
           res.status(500).json(ERROR.DATABASE_FAILURE)
         } else {
-          res.status(204).end()
+          Memo.find({ labelIds: labelId }, {}, (err2, memos) => {
+            if (err2) {
+              res.status(500).send(ERROR.DATABASE_FAILURE)
+            } else {
+              const newMemos = []
+              memos.forEach(memo => {
+                memo.labelIds = _.without(memo.labelIds, labelId)
+                newMemos.push(memo)
+              })
+              saveMany(newMemos)
+                .then(() => { res.json(newMemos) })
+                .catch(() => { res.status(500).json(ERROR.DATABASE_FAILURE) })
+            }
+          })
         }
       })
     },
