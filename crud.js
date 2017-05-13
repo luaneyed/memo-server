@@ -18,6 +18,7 @@ const ERROR = {
   NONEXISTENT_MEMO: '메모가 존재하지 않습니다.',
   NONEXISTENT_LABEL: '라벨이 존재하지 않습니다.',
   OCCUPIED_LABEL_NAME: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.',
+  LABEL_NO_EMPTY_NAME: '라벨의 이름을 빈 문자열로 설정할 수 없습니다.',
 }
 Object.keys(ERROR).forEach(error => {
   ERROR[error] = { errorMessage: ERROR[error] }
@@ -63,21 +64,25 @@ export default [
     description: 'Create a label',
     handler: (req, res) => {
       const { name = '' } = req.body
-      Label.isUnoccupiedName(name)
-        .then(() => {
-          const newLabel = new Label({ name, createdAt: getNow() })
+      if (name === '') {
+        res.status(405).json(ERROR.LABEL_NO_EMPTY_NAME)
+      } else {
+        Label.isUnoccupiedName(name)
+          .then(() => {
+            const newLabel = new Label({ name, createdAt: getNow() })
 
-          newLabel.save((err, label) => {
-            if (err) {
-              res.status(500).json(ERROR.DATABASE_FAILURE)
-            } else {
-              res.json(label)
-            }
+            newLabel.save((err, label) => {
+              if (err) {
+                res.status(500).json(ERROR.DATABASE_FAILURE)
+              } else {
+                res.json(label)
+              }
+            })
           })
-        })
-        .catch(() => {
-          res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
-        })
+          .catch(() => {
+            res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
+          })
+      }
     },
   },
   {
@@ -93,29 +98,33 @@ export default [
         } else {
           const { name = '' } = req.body
 
-          const doUpdate = () => {
-            if (!_.isUndefined(name)) {
-              label.name = name
+          if (name === '') {
+            res.status(405).json(ERROR.LABEL_NO_EMPTY_NAME)
+          } else {
+            const doUpdate = () => {
+              if (!_.isUndefined(name)) {
+                label.name = name
+              }
+
+              label.save(err2 => {
+                if (err2) {
+                  res.status(500).json(ERROR.DATABASE_FAILURE)
+                } else {
+                  res.json(label)
+                }
+              })
             }
 
-            label.save(err2 => {
-              if (err2) {
-                res.status(500).json(ERROR.DATABASE_FAILURE)
-              } else {
-                res.json(label)
-              }
-            })
+            Label.isUnoccupiedName(name)
+              .then(doUpdate)
+              .catch(occupyingLabel => {
+                if (occupyingLabel.isId(req.params.labelId)) {
+                  doUpdate()
+                } else {
+                  res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
+                }
+              })
           }
-
-          Label.isUnoccupiedName(name)
-            .then(doUpdate)
-            .catch(occupyingLabel => {
-              if (occupyingLabel.isId(req.params.labelId)) {
-                doUpdate()
-              } else {
-                res.status(500).send(ERROR.OCCUPIED_LABEL_NAME)
-              }
-            })
         }
       })
     },
