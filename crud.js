@@ -53,6 +53,31 @@ const saveMany = documents => new Promise((res, rej) => {
   saveLeft()
 })
 
+const deleteManyMemos = memoIds => new Promise((res, rej) => {
+  let left = memoIds.length
+  if (left === 0) {
+    res()
+  }
+
+  const deleteLeft = () => {
+    Memo.remove({ _id: memoIds[left - 1] }, err => {
+      if (err) {
+        rej(err)
+      } else {
+        left -= 1
+
+        if (left) {
+          deleteLeft()
+        } else {
+          res()
+        }
+      }
+    })
+  }
+
+  deleteLeft()
+})
+
 export default [
 
   //  label
@@ -284,15 +309,11 @@ export default [
   {
     method: HTTP.DELETE,
     path: '/memos',
-    description: 'Remove all memos (FOR DEBUG)',
+    description: 'Remove memos of given memoIds',
     handler: (req, res) => {
-      Memo.remove({}, err => {
-        if (err) {
-          res.status(500).json(ERROR.DATABASE_FAILURE)
-        } else {
-          res.status(204).end()
-        }
-      })
+      deleteManyMemos(req.body)
+        .then(() => { res.status(204).end() })
+        .catch(() => { res.status(500).json(ERROR.DATABASE_FAILURE) })
     },
   },
 ]
