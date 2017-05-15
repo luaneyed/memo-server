@@ -19,6 +19,7 @@ const ERROR = {
   NONEXISTENT_LABEL: '라벨이 존재하지 않습니다.',
   OCCUPIED_LABEL_NAME: '해당 라벨 이름이 이미 존재합니다. 라벨 이름은 겹칠 수 없습니다.',
   LABEL_NO_EMPTY_NAME: '라벨의 이름을 빈 문자열로 설정할 수 없습니다.',
+  MEMO_NO_EMPTY_TITLE: '메모의 제목을 빈 문자열로 설정할 수 없습니다.',
 }
 Object.keys(ERROR).forEach(error => {
   ERROR[error] = { errorMessage: ERROR[error] }
@@ -246,8 +247,13 @@ export default [
     description: 'Create a Memo',
     handler: (req, res) => {
       const { title = '', content = '', labelIds = [] } = req.body
-      const newMemo = new Memo({ title, content, labelIds, updatedAt: getNow() })
 
+      if (!title) {
+        res.status(405).json(ERROR.MEMO_NO_EMPTY_TITLE)
+        return
+      }
+
+      const newMemo = new Memo({ title, content, labelIds, updatedAt: getNow() })
       newMemo.save((err, memo) => {
         if (err) {
           res.status(500).json(ERROR.DATABASE_FAILURE)
@@ -271,6 +277,11 @@ export default [
           const { title, content, labelIds } = req.body
 
           if (!_.isUndefined(title)) {
+            if (!title) {
+              res.status(405).json(ERROR.MEMO_NO_EMPTY_TITLE)
+              return
+            }
+
             memo.title = title
           }
           if (!_.isUndefined(content)) {
