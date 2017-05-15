@@ -318,7 +318,7 @@ export default [
     },
   },
   {
-    method: HTTP.DELETE,
+    method: HTTP.POST,
     path: '/memos',
     description: 'Remove memos of given memoIds',
     handler: (req, res) => {
