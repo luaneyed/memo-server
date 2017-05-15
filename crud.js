@@ -316,4 +316,55 @@ export default [
         .catch(() => { res.status(500).json(ERROR.DATABASE_FAILURE) })
     },
   },
+  {
+    method: HTTP.POST,
+    path: '/memos/attach_labels',
+    description: 'Attach labels of given labelIds to memos of given memoIds',
+    handler: (req, res) => {
+      const { labelIds, memoIds } = req.body
+      Memo.find({ _id: { $in: memoIds } }, {}, (err, memos) => {
+        if (err) {
+          res.status(500).send(ERROR.DATABASE_FAILURE)
+        } else {
+          const newMemos = memos.map(memo => {
+            labelIds.forEach(labelId => {
+              if (!memo.labelIds.includes(labelId)) {
+                memo.labelIds.push(labelId)
+              }
+            })
+            return memo
+          })
+          saveMany(newMemos)
+            .then(() => { res.json(newMemos) })
+            .catch(() => { res.status(500).json(ERROR.DATABASE_FAILURE) })
+        }
+      })
+    },
+  },
+  {
+    method: HTTP.POST,
+    path: '/memos/detach_labels',
+    description: 'Detach labels of given labelIds to memos of given memoIds',
+    handler: (req, res) => {
+      const { labelIds, memoIds } = req.body
+      Memo.find({ _id: { $in: memoIds } }, {}, (err, memos) => {
+        if (err) {
+          res.status(500).send(ERROR.DATABASE_FAILURE)
+        } else {
+          const newMemos = memos.map(memo => {
+            labelIds.forEach(labelId => {
+              const idx = memo.labelIds.indexOf(labelId)
+              if (idx !== -1) {
+                memo.labelIds.splice(idx)
+              }
+            })
+            return memo
+          })
+          saveMany(newMemos)
+            .then(() => { res.json(newMemos) })
+            .catch(() => { res.status(500).json(ERROR.DATABASE_FAILURE) })
+        }
+      })
+    },
+  },
 ]
